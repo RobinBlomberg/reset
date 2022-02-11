@@ -1,4 +1,4 @@
-import { KjouNode } from './kjou-node';
+import { KjouNode } from './node';
 
 export type KjouChild = KjouNode | string;
 
