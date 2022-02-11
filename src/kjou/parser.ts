@@ -12,8 +12,7 @@ const ESCAPABLE_CHAR = /^[u"'\\/bfnrt]$/;
 const ESCAPE_CHAR = '\\';
 const HASH_CHAR = '#';
 const HEX_CHAR = /^[0-9A-Fa-f]$/;
-const NAME_CHAR = /^[^\s,"'{}()]$/;
-const KEY_CHAR = /^[^\s:,{}()]$/;
+const IDENTIFIER_CHAR = /^[^\s"',:{}()]$/;
 const LEFT_BRACKET_CHAR = '[';
 const LEFT_CURLY_CHAR = '{';
 const LEFT_PARENTHESIS_CHAR = '(';
@@ -126,6 +125,16 @@ export class KjouParser {
     }
   }
 
+  private parseIdentifier() {
+    let name = this.parser.one(IDENTIFIER_CHAR);
+
+    while (this.parser.sees(IDENTIFIER_CHAR)) {
+      name += this.parser.consume();
+    }
+
+    return name;
+  }
+
   private parseInteger() {
     let value = '';
 
@@ -147,27 +156,11 @@ export class KjouParser {
       return this.parseString();
     }
 
-    let name = this.parser.one(KEY_CHAR);
-
-    while (this.parser.sees(KEY_CHAR)) {
-      name += this.parser.consume();
-    }
-
-    return name;
-  }
-
-  private parseName() {
-    let name = this.parser.one(NAME_CHAR);
-
-    while (this.parser.sees(NAME_CHAR)) {
-      name += this.parser.consume();
-    }
-
-    return name;
+    return this.parseIdentifier();
   }
 
   private parseNode(): KjouNode {
-    const name = this.parseName();
+    const name = this.parseIdentifier();
     let attributes: KjouObject | null = null;
     let children: KjouChild[] | null = null;
 
