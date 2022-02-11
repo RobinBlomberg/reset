@@ -35,28 +35,6 @@ export class KjouParser {
     this.parser = new Parser(data);
   }
 
-  private parseArray() {
-    const array: KjouValue[] = [];
-
-    this.parser.consume();
-    this.parseSpace();
-
-    while (!this.parser.sees(RIGHT_BRACKET_CHAR)) {
-      const node = this.parseValue();
-      array.push(node);
-      this.parseSpace();
-
-      if (this.parser.sees(COMMA_CHAR)) {
-        this.parser.consume();
-        this.parseSpace();
-      }
-    }
-
-    this.parser.one(RIGHT_BRACKET_CHAR);
-
-    return array;
-  }
-
   private parseChild() {
     if (this.parser.sees(QUOTE_CHAR)) {
       return this.parseString();
@@ -79,25 +57,6 @@ export class KjouParser {
     this.parser.one(RIGHT_CURLY_CHAR);
 
     return children;
-  }
-
-  private parseEnum() {
-    let name = this.parser.one(ENUM_CHAR);
-
-    while (this.parser.sees(ENUM_CHAR)) {
-      name += this.parser.consume();
-    }
-
-    switch (name) {
-      case 'false':
-        return false;
-      case 'null':
-        return null;
-      case 'true':
-        return true;
-      default:
-        return name;
-    }
   }
 
   private parseEscapedCharacter(character: string) {
@@ -123,90 +82,6 @@ export class KjouParser {
       default:
         return '';
     }
-  }
-
-  private parseIdentifier() {
-    let name = this.parser.one(IDENTIFIER_CHAR);
-
-    while (this.parser.sees(IDENTIFIER_CHAR)) {
-      name += this.parser.consume();
-    }
-
-    return name;
-  }
-
-  private parseInteger() {
-    let value = '';
-
-    if (this.parser.sees(ZERO_CHAR)) {
-      value += this.parser.consume();
-    } else {
-      value += this.parser.one(DECIMAL_DIGIT_CHAR);
-
-      while (this.parser.sees(DECIMAL_DIGIT_CHAR)) {
-        value += this.parser.consume();
-      }
-    }
-
-    return value;
-  }
-
-  private parseKey() {
-    if (this.parser.sees(QUOTE_CHAR)) {
-      return this.parseString();
-    }
-
-    return this.parseIdentifier();
-  }
-
-  private parseNode(): KjouNode {
-    const name = this.parseIdentifier();
-    let attributes: KjouObject | null = null;
-    let children: KjouChild[] | null = null;
-
-    this.parseSpace();
-
-    if (this.parser.sees(LEFT_PARENTHESIS_CHAR)) {
-      attributes = this.parseProperties(RIGHT_PARENTHESIS_CHAR);
-    }
-
-    if (this.parser.sees(LEFT_CURLY_CHAR)) {
-      children = this.parseChildren();
-    }
-
-    this.parseSpace();
-
-    return new KjouNode(name, attributes, children);
-  }
-
-  private parseNumber() {
-    let value = '';
-
-    if (this.parser.sees(SIGN_CHAR)) {
-      value += this.parser.consume();
-    }
-
-    value += this.parseInteger();
-
-    if (this.parser.sees(PERIOD_CHAR)) {
-      value += this.parser.consume();
-      value += this.parser.one(DECIMAL_DIGIT_CHAR);
-
-      while (this.parser.sees(DECIMAL_DIGIT_CHAR)) {
-        value += this.parser.consume();
-      }
-    }
-
-    if (this.parser.sees(E_CHAR)) {
-      value += this.parser.consume();
-      value += this.parseInteger();
-    }
-
-    return Number(value);
-  }
-
-  private parseObject() {
-    return this.parseProperties(RIGHT_CURLY_CHAR);
   }
 
   private parseProperties(closeCharacter: string) {
@@ -262,7 +137,147 @@ export class KjouParser {
     }
   }
 
-  private parseString() {
+  parseArray() {
+    const array: KjouValue[] = [];
+
+    this.parser.consume();
+    this.parseSpace();
+
+    while (!this.parser.sees(RIGHT_BRACKET_CHAR)) {
+      const node = this.parseValue();
+      array.push(node);
+      this.parseSpace();
+
+      if (this.parser.sees(COMMA_CHAR)) {
+        this.parser.consume();
+        this.parseSpace();
+      }
+    }
+
+    this.parser.one(RIGHT_BRACKET_CHAR);
+
+    return array;
+  }
+
+  parseDocument() {
+    this.parseSpace();
+
+    const nodes: KjouNode[] = [];
+
+    while (!this.parser.isDone()) {
+      const node = this.parseNode();
+      nodes.push(node);
+    }
+
+    return new KjouDocument(nodes);
+  }
+
+  parseEnum() {
+    let name = this.parser.one(ENUM_CHAR);
+
+    while (this.parser.sees(ENUM_CHAR)) {
+      name += this.parser.consume();
+    }
+
+    switch (name) {
+      case 'false':
+        return false;
+      case 'null':
+        return null;
+      case 'true':
+        return true;
+      default:
+        return name;
+    }
+  }
+
+  parseIdentifier() {
+    let name = this.parser.one(IDENTIFIER_CHAR);
+
+    while (this.parser.sees(IDENTIFIER_CHAR)) {
+      name += this.parser.consume();
+    }
+
+    return name;
+  }
+
+  parseKey() {
+    if (this.parser.sees(QUOTE_CHAR)) {
+      return this.parseString();
+    }
+
+    return this.parseIdentifier();
+  }
+
+  parseInteger() {
+    let value = '';
+
+    if (this.parser.sees(ZERO_CHAR)) {
+      value += this.parser.consume();
+    } else {
+      value += this.parser.one(DECIMAL_DIGIT_CHAR);
+
+      while (this.parser.sees(DECIMAL_DIGIT_CHAR)) {
+        value += this.parser.consume();
+      }
+    }
+
+    return value;
+  }
+
+  parseNode(): KjouNode {
+    const name = this.parseIdentifier();
+    let attributes: KjouObject | null = null;
+    let children: KjouChild[] | null = null;
+
+    this.parseSpace();
+
+    if (this.parser.sees(LEFT_PARENTHESIS_CHAR)) {
+      attributes = this.parseProperties(RIGHT_PARENTHESIS_CHAR);
+    }
+
+    if (this.parser.sees(LEFT_CURLY_CHAR)) {
+      children = this.parseChildren();
+    }
+
+    this.parseSpace();
+
+    return new KjouNode(name, attributes, children);
+  }
+
+  parseNumber() {
+    let value = '';
+
+    if (this.parser.sees(SIGN_CHAR)) {
+      value += this.parser.consume();
+    }
+
+    value += this.parseInteger();
+
+    if (this.parser.sees(PERIOD_CHAR)) {
+      value += this.parser.consume();
+      value += this.parser.one(DECIMAL_DIGIT_CHAR);
+
+      while (this.parser.sees(DECIMAL_DIGIT_CHAR)) {
+        value += this.parser.consume();
+      }
+    }
+
+    if (this.parser.sees(E_CHAR)) {
+      value += this.parser.consume();
+      value += this.parseInteger();
+    }
+
+    return Number(value);
+  }
+
+  parseObject() {
+    this.parseSpace();
+
+    return this.parseProperties(RIGHT_CURLY_CHAR);
+  }
+
+  parseString() {
     const quoteCharacter = this.parser.one(QUOTE_CHAR);
     let value = '';
 
@@ -293,19 +308,6 @@ export class KjouParser {
     this.parseSpace();
 
     return value;
-  }
-
-  parseDocument() {
-    this.parseSpace();
-
-    const nodes: KjouNode[] = [];
-
-    while (!this.parser.isDone()) {
-      const node = this.parseNode();
-      nodes.push(node);
-    }
-
-    return new KjouDocument(nodes);
   }
 
   parseValue(): KjouValue {
