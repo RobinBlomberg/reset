@@ -6,12 +6,11 @@ const COLON_CHAR = ':';
 const COMMA_CHAR = ',';
 const DECIMAL_DIGIT_CHAR = /^[0-9]$/;
 const E_CHAR = /^[eE]$/;
-const ENUM_CHAR = /^[^\s,\]})]$/;
 const ESCAPABLE_CHAR = /^[u"'\\/bfnrt]$/;
 const ESCAPE_CHAR = '\\';
 const HASH_CHAR = '#';
 const HEX_CHAR = /^[0-9A-Fa-f]$/;
-const IDENTIFIER_CHAR = /^[^\s"',:{}()]$/;
+const IDENTIFIER_CHAR = /^[a-zA-Z0-9_-]$/;
 const LEFT_BRACKET_CHAR = '[';
 const LEFT_CURLY_CHAR = '{';
 const LEFT_PARENTHESIS_CHAR = '(';
@@ -23,7 +22,7 @@ const RIGHT_BRACKET_CHAR = ']';
 const RIGHT_CURLY_CHAR = '}';
 const RIGHT_PARENTHESIS_CHAR = ')';
 const SIGN_CHAR = /^[-+]$/;
-const SPACE_CHAR = /^[\s#]$/;
+const SPACE_OR_HASH_CHAR = /^[\s#]$/;
 const U_CHAR = 'u';
 const ZERO_CHAR = '0';
 
@@ -94,12 +93,7 @@ export class KjouParser {
   }
 
   parseEnum() {
-    let name = this.scanner.one(ENUM_CHAR);
-
-    while (this.scanner.sees(ENUM_CHAR)) {
-      name += this.scanner.consume();
-    }
-
+    const name = this.parseIdentifier();
     switch (name) {
       case 'false':
         return false;
@@ -263,7 +257,7 @@ export class KjouParser {
   }
 
   parseSpace() {
-    while (this.scanner.sees(SPACE_CHAR)) {
+    while (this.scanner.sees(SPACE_OR_HASH_CHAR)) {
       if (this.scanner.sees(HASH_CHAR)) {
         this.scanner.consume();
 
