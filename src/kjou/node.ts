@@ -14,38 +14,4 @@ export class KjouNode {
     this.attributes = attributes;
     this.children = children;
   }
-
-  toHtml() {
-    let html = `<${this.name}`;
-
-    for (const name in this.attributes) {
-      if (Object.prototype.hasOwnProperty.call(this.attributes, name)) {
-        const value = this.attributes[name];
-        if (
-          typeof value === 'string' ||
-          typeof value === 'number' ||
-          typeof value === 'boolean' ||
-          value === undefined
-        ) {
-          html += ` ${name}`;
-
-          if (value !== undefined) {
-            html += `=${JSON.stringify(String(value))}`;
-          }
-        }
-      }
-    }
-
-    html += '>';
-
-    if (this.children) {
-      for (const child of this.children) {
-        html += typeof child === 'string' ? child : child.toHtml();
-      }
-
-      html += `</${this.name}>`;
-    }
-
-    return html;
-  }
 }

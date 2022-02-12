@@ -1,4 +1,3 @@
-import { KjouDocument } from './document';
 import { KjouNode } from './node';
 import { Parser } from './scanner';
 import { KjouChild, KjouObject, KjouValue } from './types';
@@ -169,7 +168,7 @@ export class KjouParser {
       nodes.push(node);
     }
 
-    return new KjouDocument(nodes);
+    return nodes;
   }
 
   parseEnum() {
