@@ -1,4 +1,4 @@
-export class Parser {
+export class KjouScanner {
   readonly data: string;
   index = 0;
 

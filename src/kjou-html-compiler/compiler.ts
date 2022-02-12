@@ -1,4 +1,4 @@
-import { KjouNode } from '../kjou/node';
+import { KjouNode } from '../kjou';
 
 export class KjouHtmlCompiler {
   compile(node: KjouNode | KjouNode[]) {
