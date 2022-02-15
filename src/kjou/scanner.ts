@@ -16,16 +16,20 @@ export class KjouScanner {
     return character;
   }
 
+  createError() {
+    const noun = this.data[this.index]
+      ? `character ${JSON.stringify(this.data[this.index])}`
+      : 'end of input';
+    return new SyntaxError(`Unexpected ${noun} at index ${this.index}`);
+  }
+
   isDone() {
     return !this.data[this.index];
   }
 
   one(pattern: RegExp | string) {
     if (!this.sees(pattern)) {
-      const noun = this.data[this.index]
-        ? `character ${JSON.stringify(this.data[this.index])}`
-        : 'end of input';
-      throw new SyntaxError(`Unexpected ${noun} at index ${this.index}`);
+      throw this.createError();
     }
 
     return this.consume();

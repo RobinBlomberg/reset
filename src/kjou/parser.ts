@@ -72,6 +72,7 @@ export class KjouParser {
     while (!this.scanner.sees(RIGHT_CURLY_CHAR)) {
       const node = this.parseChild();
       children.push(node);
+      this.parseSpace();
     }
 
     this.scanner.one(RIGHT_CURLY_CHAR);
@@ -146,6 +147,10 @@ export class KjouParser {
 
     if (this.scanner.sees(ZERO_CHAR)) {
       value += this.scanner.consume();
+
+      if (this.scanner.sees(DECIMAL_DIGIT_CHAR)) {
+        throw this.scanner.createError();
+      }
     } else {
       value += this.scanner.one(DECIMAL_DIGIT_CHAR);
 
@@ -206,6 +211,10 @@ export class KjouParser {
     if (this.scanner.sees(E_CHAR)) {
       value += this.scanner.consume();
       value += this.parseInteger();
+
+      if (this.scanner.sees(PERIOD_CHAR)) {
+        throw this.scanner.createError();
+      }
     }
 
     return Number(value);
