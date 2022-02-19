@@ -54,6 +54,35 @@ deepStrictEqual(
     new KjouNode('body', null, ['Hello world!']),
   ]),
 );
+deepStrictEqual(
+  new KjouParser(
+    `fragment comparisonFields on Character {
+      name
+      friendsConnection(first: $first) {
+        totalCount
+        edges {
+          node {
+            name
+          }
+        }
+      }
+    }`,
+  ).parseDocument(),
+  [
+    new KjouNode('fragment', null, null),
+    new KjouNode('comparisonFields', null, null),
+    new KjouNode('on', null, null),
+    new KjouNode('Character', null, [
+      new KjouNode('name', null, null),
+      new KjouNode('friendsConnection', { first: '$first' }, [
+        new KjouNode('totalCount', null, null),
+        new KjouNode('edges', null, [
+          new KjouNode('node', null, [new KjouNode('name', null, null)]),
+        ]),
+      ]),
+    ]),
+  ],
+);
 
 // Aliases:
 deepStrictEqual(
