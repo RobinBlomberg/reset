@@ -4,36 +4,56 @@ import { KjouParser } from '../../parser';
 
 deepStrictEqual(
   new KjouParser('name').parseNode(),
-  new KjouNode('name', null, null),
+  new KjouNode({ name: 'name' }),
 );
 
 // Attributes:
-deepStrictEqual(new KjouParser('a()').parseNode(), new KjouNode('a', {}, null));
+deepStrictEqual(
+  new KjouParser('a()').parseNode(),
+  new KjouNode({ name: 'a', props: {} }),
+);
 deepStrictEqual(
   new KjouParser('meta(name:description)').parseNode(),
-  new KjouNode('meta', { name: 'description' }, null),
+  new KjouNode({
+    name: 'meta',
+    props: {
+      attributes: { name: new KjouNode({ name: 'description' }) },
+    },
+  }),
 );
 deepStrictEqual(
   new KjouParser('foo ( bar : baz qux : -0 , a b ) ').parseNode(),
-  new KjouNode(
-    'foo',
-    { a: undefined, b: undefined, bar: 'baz', qux: -0 },
-    null,
-  ),
+  new KjouNode({
+    name: 'foo',
+    props: {
+      args: [new KjouNode({ name: 'a' }), new KjouNode({ name: 'b' })],
+      attributes: {
+        bar: new KjouNode({ name: 'baz' }),
+        qux: -0,
+      },
+    },
+  }),
 );
 
 // Children:
-deepStrictEqual(new KjouParser('_{}').parseNode(), new KjouNode('_', null, []));
+deepStrictEqual(
+  new KjouParser('_{}').parseNode(),
+  new KjouNode({ children: [], name: '_' }),
+);
 deepStrictEqual(
   new KjouParser('0-1(){}').parseNode(),
-  new KjouNode('0-1', {}, []),
+  new KjouNode({
+    children: [],
+    name: '0-1',
+    props: {},
+  }),
 );
 deepStrictEqual(
   new KjouParser(
-    `html(lang: en-US) {
+    `html(lang: 'en-US') {
       head {
         meta(name: 'description')
-        meta(http-equiv: X-UA-Compatible, content: 'IE=edge')
+        meta(http-equiv: 'X-UA-Compatible', content: 'IE=edge')
         title{'Untitled Document'}
       }
       body {
@@ -41,19 +61,38 @@ deepStrictEqual(
       }
     }`,
   ).parseNode(),
-  new KjouNode('html', { lang: 'en-US' }, [
-    new KjouNode('head', null, [
-      new KjouNode('meta', { name: 'description' }, null),
-      new KjouNode(
-        'meta',
-        { content: 'IE=edge', 'http-equiv': 'X-UA-Compatible' },
-        null,
-      ),
-      new KjouNode('title', null, ['Untitled Document']),
-    ]),
-    new KjouNode('body', null, ['Hello world!']),
-  ]),
+  new KjouNode({
+    children: [
+      new KjouNode({
+        children: [
+          new KjouNode({
+            name: 'meta',
+            props: { attributes: { name: 'description' } },
+          }),
+          new KjouNode({
+            name: 'meta',
+            props: {
+              attributes: {
+                content: 'IE=edge',
+                'http-equiv': 'X-UA-Compatible',
+              },
+            },
+          }),
+          new KjouNode({ children: ['Untitled Document'], name: 'title' }),
+        ],
+        name: 'head',
+      }),
+      new KjouNode({ children: ['Hello world!'], name: 'body' }),
+    ],
+    name: 'html',
+    props: {
+      attributes: { lang: 'en-US' },
+    },
+  }),
 );
+deepStrictEqual(new KjouParser('a {}').parseDocument(), [
+  new KjouNode({ children: [], name: 'a' }),
+]);
 deepStrictEqual(
   new KjouParser(
     `fragment comparisonFields on Character {
@@ -69,41 +108,34 @@ deepStrictEqual(
     }`,
   ).parseDocument(),
   [
-    new KjouNode('fragment', null, null),
-    new KjouNode('comparisonFields', null, null),
-    new KjouNode('on', null, null),
-    new KjouNode('Character', null, [
-      new KjouNode('name', null, null),
-      new KjouNode('friendsConnection', { first: '$first' }, [
-        new KjouNode('totalCount', null, null),
-        new KjouNode('edges', null, [
-          new KjouNode('node', null, [new KjouNode('name', null, null)]),
-        ]),
-      ]),
-    ]),
-  ],
-);
-
-// Aliases:
-deepStrictEqual(
-  new KjouParser(
-    `query {
-      empireHero:hero(episode: EMPIRE) {
-        name
-      }
-      jediHero  :  hero  (  episode  :  JEDI  )  {
-        name
-      }
-    }`,
-  ).parseDocument(),
-  [
-    new KjouNode('query', null, [
-      new KjouNode(['hero', 'empireHero'], { episode: 'EMPIRE' }, [
-        new KjouNode('name', null, null),
-      ]),
-      new KjouNode(['hero', 'jediHero'], { episode: 'JEDI' }, [
-        new KjouNode('name', null, null),
-      ]),
-    ]),
+    new KjouNode({ name: 'fragment' }),
+    new KjouNode({ name: 'comparisonFields' }),
+    new KjouNode({ name: 'on' }),
+    new KjouNode({
+      children: [
+        new KjouNode({ name: 'name' }),
+        new KjouNode({
+          children: [
+            new KjouNode({ name: 'totalCount' }),
+            new KjouNode({
+              children: [
+                new KjouNode({
+                  children: [new KjouNode({ name: 'name' })],
+                  name: 'node',
+                }),
+              ],
+              name: 'edges',
+            }),
+          ],
+          name: 'friendsConnection',
+          props: {
+            attributes: {
+              first: new KjouNode({ name: '$first' }),
+            },
+          },
+        }),
+      ],
+      name: 'Character',
+    }),
   ],
 );

@@ -1,19 +1,40 @@
-import { KjouChild, KjouObject } from './types';
+import { KjouChild, KjouObject, KjouProps, KjouValue } from './types';
 
 export class KjouNode {
-  readonly alias: string | null;
-  readonly attributes: KjouObject | null;
-  readonly children: KjouChild[] | null;
+  readonly alias?: string;
+  readonly children?: KjouChild[];
   readonly name: string;
+  readonly props?: KjouProps;
 
-  constructor(
-    name: string | [string, string | null],
-    attributes: KjouObject | null,
-    children: KjouChild[] | null,
-  ) {
-    this.name = Array.isArray(name) ? name[0] : name;
-    this.alias = Array.isArray(name) ? name[1] : null;
-    this.attributes = attributes;
-    this.children = children;
+  constructor({
+    alias,
+    children,
+    name,
+    props,
+  }: {
+    alias?: string;
+    children?: KjouChild[];
+    name: string;
+    props?: {
+      args?: KjouValue[];
+      attributes?: KjouObject;
+    };
+  }) {
+    this.name = name;
+
+    if (alias) {
+      this.alias = alias;
+    }
+
+    if (props) {
+      this.props = {
+        args: props.args ?? [],
+        attributes: props.attributes ?? {},
+      };
+    }
+
+    if (children) {
+      this.children = children;
+    }
   }
 }

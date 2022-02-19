@@ -1,10 +1,13 @@
 import { deepStrictEqual } from 'assert';
+import { KjouNode } from '../../node';
 import { KjouParser } from '../../parser';
 
 deepStrictEqual(new KjouParser('{}').parseObject(), {});
 
 // Properties:
-deepStrictEqual(new KjouParser('{foo:bar}').parseObject(), { foo: 'bar' });
+deepStrictEqual(new KjouParser('{foo:bar}').parseObject(), {
+  foo: new KjouNode({ name: 'bar' }),
+});
 deepStrictEqual(new KjouParser('{bar:null,qux:42}').parseObject(), {
   bar: null,
   qux: 42,
@@ -18,7 +21,7 @@ deepStrictEqual(new KjouParser('{a,b c}').parseObject(), {
   c: undefined,
 });
 deepStrictEqual(new KjouParser('{ a : b c d : "yes" }').parseObject(), {
-  a: 'b',
+  a: new KjouNode({ name: 'b' }),
   c: undefined,
   d: 'yes',
 });
@@ -29,7 +32,12 @@ deepStrictEqual(new KjouParser('{123,0 -5:-5}').parseObject(), {
   0: undefined,
   123: undefined,
 });
-deepStrictEqual(new KjouParser('{ "foo bar": "baz", \'qux\' }').parseObject(), {
+deepStrictEqual(new KjouParser('{ "foo bar": "baz", "qux" }').parseObject(), {
   'foo bar': 'baz',
   qux: undefined,
+});
+
+// Node values:
+deepStrictEqual(new KjouParser('{foo(bar): baz}').parseObject(), {
+  foo: new KjouNode({ name: 'baz' }),
 });

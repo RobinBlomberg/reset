@@ -1,16 +1,17 @@
 import { KjouNode } from './node';
 import { KjouScanner } from './scanner';
-import { KjouChild, KjouObject, KjouValue } from './types';
+import { KjouChild, KjouProps, KjouValue } from './types';
 
 const COLON_CHAR = ':';
 const COMMA_CHAR = ',';
 const DECIMAL_DIGIT_CHAR = /^[0-9]$/;
+const DOUBLE_QUOTE_CHAR = '"';
 const E_CHAR = /^[eE]$/;
 const ESCAPABLE_CHAR = /^[u"'\\/bfnrt]$/;
 const ESCAPE_CHAR = '\\';
 const HASH_CHAR = '#';
 const HEX_CHAR = /^[0-9A-Fa-f]$/;
-const IDENTIFIER_CHAR = /^[a-zA-Z0-9_$-]$/;
+const IDENTIFIER_CHAR = /^[^\s':;{}()\],]$/;
 const LEFT_BRACKET_CHAR = '[';
 const LEFT_CURLY_CHAR = '{';
 const LEFT_PARENTHESIS_CHAR = '(';
@@ -21,16 +22,40 @@ const QUOTE_CHAR = /^["']$/;
 const RIGHT_BRACKET_CHAR = ']';
 const RIGHT_CURLY_CHAR = '}';
 const RIGHT_PARENTHESIS_CHAR = ')';
+const SEMI_COLON_CHAR = ';';
 const SIGN_CHAR = /^[-+]$/;
+const SINGLE_QUOTE_CHAR = "'";
 const SPACE_OR_HASH_CHAR = /^[\s#]$/;
 const U_CHAR = 'u';
 const ZERO_CHAR = '0';
+
+const invalidKeyError = new SyntaxError(
+  'Expected key to be of type "Node | string | number"',
+);
 
 export class KjouParser {
   private readonly scanner: KjouScanner;
 
   constructor(data: string) {
     this.scanner = new KjouScanner(data);
+  }
+
+  private isValidKey(value: KjouValue) {
+    return value instanceof KjouNode || !(value instanceof Object);
+  }
+
+  parseAliasedNode() {
+    const name = this.parseName();
+
+    this.parseSpace();
+
+    if (this.scanner.sees(COLON_CHAR)) {
+      this.scanner.consume();
+      this.parseSpace();
+      return this.parseNode({ alias: name });
+    }
+
+    return this.parseNode({ name });
   }
 
   parseArray() {
@@ -56,9 +81,9 @@ export class KjouParser {
   }
 
   parseChild() {
-    return this.scanner.sees(QUOTE_CHAR)
-      ? this.parseString()
-      : this.parseNode();
+    return this.scanner.sees(SINGLE_QUOTE_CHAR)
+      ? this.parseString(SINGLE_QUOTE_CHAR)
+      : this.parseAliasedNode();
   }
 
   parseChildren() {
@@ -81,15 +106,15 @@ export class KjouParser {
   parseDocument() {
     this.parseSpace();
 
-    const nodes: KjouNode[] = [];
+    const values: KjouValue[] = [];
 
     while (!this.scanner.isDone()) {
-      const node = this.parseNode();
-      nodes.push(node);
+      const value = this.parseValue();
+      values.push(value);
       this.parseSpace();
     }
 
-    return nodes;
+    return values;
   }
 
   parseEnum() {
@@ -103,7 +128,7 @@ export class KjouParser {
       case 'true':
         return true;
       default:
-        return name;
+        return this.parseNode({ name });
     }
   }
 
@@ -162,42 +187,40 @@ export class KjouParser {
     return value;
   }
 
-  parseKey() {
-    return this.scanner.sees(QUOTE_CHAR)
-      ? this.parseString()
+  parseName() {
+    return this.scanner.sees(DOUBLE_QUOTE_CHAR)
+      ? this.parseString(DOUBLE_QUOTE_CHAR)
       : this.parseIdentifier();
   }
 
-  parseNode(): KjouNode {
-    let alias: string | null = null;
-    let name = this.parseIdentifier();
+  parseNode({ alias, name }: { alias?: string; name?: string } = {}) {
+    if (!name) {
+      name = this.parseName();
+    }
 
     this.parseSpace();
 
-    if (this.scanner.sees(COLON_CHAR)) {
-      this.scanner.consume();
-      this.parseSpace();
-
-      alias = name;
-      name = this.parseIdentifier();
-
-      this.parseSpace();
-    }
-
-    let attributes: KjouObject | null = null;
+    let props: KjouProps | undefined;
 
     if (this.scanner.sees(LEFT_PARENTHESIS_CHAR)) {
-      attributes = this.parseProperties(RIGHT_PARENTHESIS_CHAR);
+      props = this.parseProps(RIGHT_PARENTHESIS_CHAR, true);
       this.parseSpace();
     }
 
-    let children: KjouChild[] | null = null;
+    let children: KjouChild[] | undefined;
 
     if (this.scanner.sees(LEFT_CURLY_CHAR)) {
       children = this.parseChildren();
+    } else if (this.scanner.sees(SEMI_COLON_CHAR)) {
+      this.scanner.consume();
     }
 
-    return new KjouNode([name, alias], attributes, children);
+    return new KjouNode({
+      alias,
+      children,
+      name,
+      props,
+    });
   }
 
   parseNumber() {
@@ -233,17 +256,44 @@ export class KjouParser {
   parseObject() {
     this.parseSpace();
 
-    return this.parseProperties(RIGHT_CURLY_CHAR);
+    return this.parseProps(RIGHT_CURLY_CHAR, false).attributes;
   }
 
-  parseProperties(closeCharacter: string) {
+  parseProps(closeCharacter: string, parseArgs: boolean) {
+    const props: KjouProps = {
+      args: [],
+      attributes: {},
+    };
+
     this.scanner.consume();
     this.parseSpace();
 
-    const properties: KjouObject = {};
-
     while (!this.scanner.sees(closeCharacter)) {
-      this.parseProperty(properties);
+      const value = this.parseValue();
+
+      this.parseSpace();
+
+      const key = value instanceof KjouNode ? value.name : String(value);
+
+      if (this.scanner.sees(COLON_CHAR)) {
+        this.scanner.consume();
+        this.parseSpace();
+
+        if (!this.isValidKey(key)) {
+          throw invalidKeyError;
+        }
+
+        props.attributes[key] = this.parseValue();
+      } else if (parseArgs) {
+        props.args.push(value);
+      } else {
+        if (!this.isValidKey(key)) {
+          throw invalidKeyError;
+        }
+
+        props.attributes[key] = undefined;
+      }
+
       this.parseSpace();
 
       if (this.scanner.sees(COMMA_CHAR)) {
@@ -254,24 +304,7 @@ export class KjouParser {
 
     this.scanner.one(closeCharacter);
 
-    return properties;
-  }
-
-  parseProperty(object: Record<string, unknown>) {
-    const key = this.parseKey();
-
-    this.parseSpace();
-
-    let value: KjouValue;
-
-    if (this.scanner.sees(COLON_CHAR)) {
-      this.scanner.consume();
-      this.parseSpace();
-
-      value = this.parseValue();
-    }
-
-    object[key] = value;
+    return props;
   }
 
   parseSpace() {
@@ -288,8 +321,9 @@ export class KjouParser {
     }
   }
 
-  parseString() {
-    const quoteCharacter = this.scanner.one(QUOTE_CHAR);
+  parseString(quoteCharacter: string | RegExp = QUOTE_CHAR) {
+    this.scanner.consume();
+
     let value = '';
 
     while (!this.scanner.sees(quoteCharacter)) {
@@ -322,13 +356,16 @@ export class KjouParser {
 
   parseValue(): KjouValue {
     if (this.scanner.sees(QUOTE_CHAR)) {
-      return this.parseString();
+      return this.parseString(QUOTE_CHAR);
     } else if (this.scanner.sees(LEFT_BRACKET_CHAR)) {
       return this.parseArray();
     } else if (this.scanner.sees(LEFT_CURLY_CHAR)) {
       return this.parseObject();
     } else if (this.scanner.sees(NUMBER_START_CHAR)) {
-      return this.parseNumber();
+      const number = this.parseNumber();
+      return this.scanner.sees(IDENTIFIER_CHAR)
+        ? `${number}${this.parseIdentifier()}`
+        : number;
     }
 
     return this.parseEnum();

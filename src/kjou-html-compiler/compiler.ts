@@ -1,4 +1,5 @@
 import { KjouNode } from '../kjou';
+import { KjouValue } from '../kjou/types';
 
 export class KjouHtmlCompiler {
   compile(node: KjouNode | KjouNode[]) {
@@ -14,20 +15,23 @@ export class KjouHtmlCompiler {
 
     let html = `<${node.name}`;
 
-    for (const name in node.attributes) {
-      if (Object.prototype.hasOwnProperty.call(node.attributes, name)) {
-        const value = node.attributes[name];
-        if (
-          typeof value === 'string' ||
-          typeof value === 'number' ||
-          typeof value === 'boolean' ||
-          value === undefined
-        ) {
-          html += ` ${name}`;
+    if (node.props) {
+      for (const key in node.props.attributes) {
+        if (Object.prototype.hasOwnProperty.call(node.props.attributes, key)) {
+          const value = node.props.attributes[key];
+          const compiledAttribute = this.compileAttribute(key, value);
 
-          if (value !== undefined) {
-            html += `=${JSON.stringify(String(value))}`;
+          if (compiledAttribute) {
+            html += ` ${compiledAttribute}`;
           }
+        }
+      }
+
+      for (const arg of node.props.args) {
+        const compiledArg = this.compileValue(arg);
+
+        if (compiledArg) {
+          html += ` ${compiledArg}`;
         }
       }
     }
@@ -43,5 +47,31 @@ export class KjouHtmlCompiler {
     }
 
     return html;
+  }
+
+  compileAttribute(key: string, value: KjouValue) {
+    if (value == null) {
+      return '';
+    }
+
+    let html = key;
+
+    if (value !== '') {
+      html += `=${JSON.stringify(this.compileValue(value))}`;
+    }
+
+    return html;
+  }
+
+  compileValue(value: KjouValue) {
+    if (value instanceof KjouNode) {
+      return value.name;
+    }
+
+    if (typeof value === 'object' || value === undefined) {
+      return '';
+    }
+
+    return String(value);
   }
 }
