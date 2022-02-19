@@ -169,17 +169,27 @@ export class KjouParser {
   }
 
   parseNode(): KjouNode {
-    const name = this.parseIdentifier();
+    let alias: string | null = null;
+    let name = this.parseIdentifier();
 
     this.parseSpace();
+
+    if (this.scanner.sees(COLON_CHAR)) {
+      this.scanner.consume();
+      this.parseSpace();
+
+      alias = name;
+      name = this.parseIdentifier();
+
+      this.parseSpace();
+    }
 
     let attributes: KjouObject | null = null;
 
     if (this.scanner.sees(LEFT_PARENTHESIS_CHAR)) {
       attributes = this.parseProperties(RIGHT_PARENTHESIS_CHAR);
+      this.parseSpace();
     }
-
-    this.parseSpace();
 
     let children: KjouChild[] | null = null;
 
@@ -187,7 +197,7 @@ export class KjouParser {
       children = this.parseChildren();
     }
 
-    return new KjouNode(name, attributes, children);
+    return new KjouNode([name, alias], attributes, children);
   }
 
   parseNumber() {

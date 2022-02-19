@@ -54,3 +54,27 @@ deepStrictEqual(
     new KjouNode('body', null, ['Hello world!']),
   ]),
 );
+
+// Aliases:
+deepStrictEqual(
+  new KjouParser(
+    `query {
+      empireHero:hero(episode: EMPIRE) {
+        name
+      }
+      jediHero  :  hero  (  episode  :  JEDI  )  {
+        name
+      }
+    }`,
+  ).parseDocument(),
+  [
+    new KjouNode('query', null, [
+      new KjouNode(['hero', 'empireHero'], { episode: 'EMPIRE' }, [
+        new KjouNode('name', null, null),
+      ]),
+      new KjouNode(['hero', 'jediHero'], { episode: 'JEDI' }, [
+        new KjouNode('name', null, null),
+      ]),
+    ]),
+  ],
+);
