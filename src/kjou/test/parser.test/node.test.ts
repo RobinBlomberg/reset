@@ -39,8 +39,7 @@ deepStrictEqual(
       body {
         'Hello world!'
       }
-    }
-  `,
+    }`,
   ).parseNode(),
   new KjouNode('html', { lang: 'en-US' }, [
     new KjouNode('head', null, [
