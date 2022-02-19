@@ -2,6 +2,8 @@ import { KjouNode } from './node';
 
 export type KjouChild = KjouNode | string;
 
+export type KjouConstructorParameterGetter = (value: any) => unknown[];
+
 export type KjouObject = {
   [K in string]: KjouValue;
 };
