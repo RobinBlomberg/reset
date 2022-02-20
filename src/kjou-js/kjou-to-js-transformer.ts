@@ -24,7 +24,7 @@ export class KjouToJsTransformer {
 
     const Constructor = GLOBAL_CONSTRUCTORS[node.name as GlobalConstructorName];
     if (Constructor) {
-      return new (Constructor as any)(...args);
+      return new (Constructor as any)(...args) as unknown;
     }
 
     return node.name;

@@ -3,6 +3,12 @@ import { DECONSTRUCTORS } from './constants';
 import { Deconstructor, GlobalConstructorName } from './types';
 
 export class JsToKjouTransformer {
+  transform(node: unknown) {
+    return Array.isArray(node)
+      ? this.transformArray(node)
+      : this.transformValue(node);
+  }
+
   transformArray(node: unknown[]) {
     const output: KjouValue[] = [];
 
