@@ -1,7 +1,6 @@
-import { KjouNode } from './node';
 import { KjouParser } from './parser';
 import { KjouSerializer } from './serializer';
-import { KjouSerializerOptions } from './types';
+import { KjouSerializerOptions, KjouValue } from './types';
 
 export class Kjou {
   static format(data: string) {
@@ -9,11 +8,15 @@ export class Kjou {
     return new KjouSerializer({ pretty: true }).serializeDocument(document);
   }
 
-  static parse(data: string) {
+  static parseDocument(data: string) {
     return new KjouParser(data).parseDocument();
   }
 
-  static serialize(document: KjouNode[], options: KjouSerializerOptions) {
-    return new KjouSerializer(options).serializeDocument(document);
+  static parseValue(data: string) {
+    return new KjouParser(data).parseValue();
+  }
+
+  static serialize(value: KjouValue, options: KjouSerializerOptions = {}) {
+    return new KjouSerializer(options).serializeValue(value);
   }
 }
