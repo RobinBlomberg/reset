@@ -2,11 +2,12 @@ lockfileVersion: 5.3
 
 specifiers:
   '@robinblomberg/eslint-config-prettier': '*'
-  '@robinblomberg/eslint-config-robinblomberg': 0.10.0
+  '@robinblomberg/eslint-config-robinblomberg': '*'
   '@robinblomberg/prettier-config': '*'
   '@types/node': '*'
   '@typescript-eslint/parser': '*'
   eslint: ^7
+  tsconfig-paths: ^3.12.0
   typescript: ^4
 
 devDependencies:
@@ -16,6 +17,7 @@ devDependencies:
   '@types/node': 17.0.17
   '@typescript-eslint/parser': 5.11.0_eslint@7.32.0+typescript@4.5.5
   eslint: 7.32.0
+  tsconfig-paths: 3.12.0
   typescript: 4.5.5
 
 packages:

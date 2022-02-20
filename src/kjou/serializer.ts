@@ -1,12 +1,8 @@
 import { KjouNode } from './node';
-import { KjouObject, KjouValue } from './types';
+import { KjouObject, KjouSerializerOptions, KjouValue } from './types';
 
 const NEWLINE_REGEXP = /[\n]/;
 const SINGLE_QUOTE_OR_ESCAPE_REGEXP = /(['\\])/g;
-
-export type KjouSerializerOptions = {
-  pretty?: boolean;
-};
 
 export class KjouSerializer {
   readonly pretty: boolean;

@@ -1,5 +1,4 @@
-export * from './get-constructor';
-export * from './kjou';
+export * from './interface';
 export * from './node';
 export * from './parser';
 export * from './scanner';

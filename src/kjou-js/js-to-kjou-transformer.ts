@@ -1,6 +1,6 @@
-import { getConstructor } from '../kjou/get-constructor';
-import { KjouNode } from '../kjou/node';
-import { KjouObject, KjouValue } from '../kjou/types';
+import { KjouNode, KjouObject, KjouValue } from '~kjou';
+import { DECONSTRUCTORS } from './constants';
+import { Deconstructor, GlobalConstructorName } from './types';
 
 export class JsToKjouTransformer {
   transformArray(node: unknown[]) {
@@ -14,13 +14,16 @@ export class JsToKjouTransformer {
   }
 
   transformObject(node: Record<string | number | symbol, unknown>) {
-    const ctor = getConstructor(node);
+    const name = node.constructor.name as GlobalConstructorName;
+    const deconstructor =
+      name === 'Object' ? null : (DECONSTRUCTORS[name] as Deconstructor | null);
 
-    if (ctor) {
+    if (deconstructor) {
+      const args = deconstructor(node);
       return new KjouNode({
-        name: node.constructor.name,
+        name,
         props: {
-          args: this.transformArray(ctor.args),
+          args: this.transformArray(args),
         },
       });
     }

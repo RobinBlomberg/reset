@@ -1,6 +1,6 @@
-import { KjouNode } from '../kjou/node';
-import { KjouObject, KjouValue } from '../kjou/types';
-import { CONSTRUCTORS_BY_NAME } from './constructor';
+import { KjouNode, KjouObject, KjouValue } from '~kjou';
+import { GLOBAL_CONSTRUCTORS } from './constants';
+import { GlobalConstructorName } from './types';
 
 export class KjouToJsTransformer {
   transformArray(node: KjouValue[]) {
@@ -14,7 +14,7 @@ export class KjouToJsTransformer {
   }
 
   transformNode(node: KjouNode) {
-    const args: any[] = [];
+    const args: unknown[] = [];
 
     if (node.props?.args) {
       for (const arg of node.props.args) {
@@ -22,9 +22,9 @@ export class KjouToJsTransformer {
       }
     }
 
-    const Constructor = CONSTRUCTORS_BY_NAME[node.name];
+    const Constructor = GLOBAL_CONSTRUCTORS[node.name as GlobalConstructorName];
     if (Constructor) {
-      return new Constructor(...args);
+      return new (Constructor as any)(...args);
     }
 
     return node.name;

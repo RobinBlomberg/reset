@@ -1,6 +1,5 @@
-import { KjouHtmlCompiler } from '../kjou-html-compiler/compiler';
-import { KjouNode } from '../kjou/node';
-import { KjouValue } from '../kjou/types';
+import { KjouNode, KjouValue } from '~kjou';
+import { KjouHtmlCompiler } from '~kjou-html-compiler';
 
 export class KjouCssCompiler {
   private readonly htmlCompiler = new KjouHtmlCompiler();

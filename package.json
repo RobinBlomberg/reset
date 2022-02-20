@@ -6,6 +6,7 @@
     "@types/node": "*",
     "@typescript-eslint/parser": "*",
     "eslint": "^7",
+    "tsconfig-paths": "^3.12.0",
     "typescript": "^4"
   },
   "eslintConfig": {
