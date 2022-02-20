@@ -22,7 +22,7 @@ const QUOTE_CHAR = /^["']$/;
 const RIGHT_BRACKET_CHAR = ']';
 const RIGHT_CURLY_CHAR = '}';
 const RIGHT_PARENTHESIS_CHAR = ')';
-const SEMI_COLON_CHAR = ';';
+const SEMICOLON_CHAR = ';';
 const SIGN_CHAR = /^[-+]$/;
 const SINGLE_QUOTE_CHAR = "'";
 const SPACE_OR_HASH_CHAR = /^[\s#]$/;
@@ -96,6 +96,11 @@ export class KjouParser {
       const node = this.parseChild();
       children.push(node);
       this.parseSpace();
+
+      if (this.scanner.sees(SEMICOLON_CHAR)) {
+        this.scanner.consume();
+        this.parseSpace();
+      }
     }
 
     this.scanner.one(RIGHT_CURLY_CHAR);
@@ -106,15 +111,20 @@ export class KjouParser {
   parseDocument() {
     this.parseSpace();
 
-    const values: KjouValue[] = [];
+    const document: KjouValue[] = [];
 
     while (!this.scanner.isDone()) {
-      const value = this.parseValue();
-      values.push(value);
+      const node = this.parseValue();
+      document.push(node);
       this.parseSpace();
+
+      if (this.scanner.sees(SEMICOLON_CHAR)) {
+        this.scanner.consume();
+        this.parseSpace();
+      }
     }
 
-    return values;
+    return document;
   }
 
   parseEnum() {
@@ -211,7 +221,9 @@ export class KjouParser {
 
     if (this.scanner.sees(LEFT_CURLY_CHAR)) {
       children = this.parseChildren();
-    } else if (this.scanner.sees(SEMI_COLON_CHAR)) {
+    }
+
+    if (this.scanner.sees(SEMICOLON_CHAR)) {
       this.scanner.consume();
     }
 

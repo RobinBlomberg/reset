@@ -1,12 +1,10 @@
 export const testParser = async () => {
-  await Promise.all([
-    import('./array.test'),
-    import('./document.test'),
-    import('./enum.test'),
-    import('./node.test'),
-    import('./number.test'),
-    import('./object.test'),
-    import('./string.test'),
-    import('./value.test'),
-  ]);
+  await import('./number.test');
+  await import('./string.test');
+  await import('./enum.test');
+  await import('./array.test');
+  await import('./object.test');
+  await import('./value.test');
+  await import('./node.test');
+  await import('./document.test');
 };

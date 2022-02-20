@@ -1,13 +1,13 @@
 import { testKjouCssCompiler } from '../kjou-css-compiler/test';
 import { testKjouHtmlCompiler } from '../kjou-html-compiler/test';
 import { testKjouJs } from '../kjou-js/test';
-import { testKjou } from '../kjou/test';
+import { testKjou } from '../kjou/test/index.test';
 
-void Promise.all([
-  testKjouCssCompiler(),
-  testKjouHtmlCompiler(),
-  testKjouJs(),
-  testKjou(),
-]).then(() => {
+(async () => {
+  await testKjou();
+  testKjouCssCompiler();
+  testKjouHtmlCompiler();
+  await testKjouJs();
+
   console.info('All tests passed.');
-});
+})();

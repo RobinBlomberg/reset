@@ -37,6 +37,10 @@ deepStrictEqual(
 
 // Children:
 deepStrictEqual(
+  new KjouParser('title{};').parseNode(),
+  new KjouNode({ children: [], name: 'title' }),
+);
+deepStrictEqual(
   new KjouParser('_{}').parseNode(),
   new KjouNode({ children: [], name: '_' }),
 );

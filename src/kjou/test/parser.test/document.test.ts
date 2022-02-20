@@ -2,6 +2,7 @@ import { deepStrictEqual } from 'assert';
 import { KjouNode } from '../../node';
 import { KjouParser } from '../../parser';
 
+deepStrictEqual(new KjouParser("'Hello!';").parseDocument(), ['Hello!']);
 deepStrictEqual(new KjouParser('foo bar; baz').parseDocument(), [
   new KjouNode({ name: 'foo' }),
   new KjouNode({ name: 'bar' }),
