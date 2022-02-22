@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 /* eslint-disable @typescript-eslint/ban-types */
-export type JSONPlusReplacer = (value: any) => unknown[];
+export type JSONPlusReplacer = (value?: any) => unknown[];
 
 export type JSONPlusReviver = (args: any[]) => unknown;
 
@@ -100,14 +100,13 @@ export class JSONPlus {
   };
 
   valueReplacers = new Map<unknown, JSONPlusReplacer>([
-    [-0, () => ['-0']],
     [Infinity, () => ['Infinity']],
     [-Infinity, () => ['-Infinity']],
     [NaN, () => ['NaN']],
     [undefined, () => ['undefined']],
   ]);
 
-  private replace(value: unknown) {
+  private replace(value: unknown): unknown {
     const type = typeof value;
     const typeReplacer = this.typeReplacers[type];
     if (typeReplacer) {
@@ -119,33 +118,32 @@ export class JSONPlus {
       return valueReplacer(value);
     }
 
-    if (this.negativeZeroReplacer && Object.is(value, -0)) {
+    if (Object.is(value, -0) && this.negativeZeroReplacer) {
       return this.negativeZeroReplacer(value);
     }
 
-    if (value instanceof Array) {
-      const output: unknown[] = ['Array'];
-
-      for (const item of value) {
-        output.push(this.replace(item));
-      }
-
-      return output;
-    } else if (value instanceof Object) {
+    if (value instanceof Object) {
       const instanceReplacer = this.instanceReplacers.get(value.constructor);
       if (instanceReplacer) {
-        return [value.constructor.name, ...instanceReplacer(value)];
+        return [
+          value.constructor.name,
+          ...instanceReplacer(value).map((arg) => this.replace(arg)),
+        ];
       }
 
-      const output: Record<string, unknown> = {};
+      if (value.constructor === Object) {
+        const output: Record<string, unknown> = {};
 
-      for (const key in value) {
-        if (Object.prototype.hasOwnProperty.call(value, key)) {
-          output[key] = this.replace((value as any)[key]);
+        for (const key in value) {
+          if (Object.prototype.hasOwnProperty.call(value, key)) {
+            output[key] = this.replace((value as any)[key]);
+          }
         }
+
+        return output;
       }
 
-      return output;
+      return [];
     }
 
     return value;
@@ -160,9 +158,9 @@ export class JSONPlus {
         return this.revive(reviver(args));
       }
 
-      const Constructor = this.constructors[name];
+      const Constructor: any = this.constructors[name];
       if (Constructor) {
-        return new (Constructor as any)(...args);
+        return new Constructor(...args.map((arg) => this.revive(arg)));
       }
 
       return undefined;
