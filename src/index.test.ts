@@ -1,9 +1,15 @@
 import { JSONPlus } from '.';
 
 const JSON = new JSONPlus();
-const input: unknown = new Promise(() => {});
-const json = JSON.stringify(input);
-const output = JSON.parse(json);
+const buffer = new ArrayBuffer(2);
+const dataView = new DataView(buffer);
+dataView.setInt16(0, 643, true);
 
+const input: unknown = dataView.buffer;
+console.log(input);
+
+const json = JSON.stringify(input);
 console.log(json);
+
+const output = JSON.parse(json);
 console.dir(output, { depth: null });

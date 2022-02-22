@@ -9,9 +9,7 @@ export class JSONPlus {
     /**
      * AggregateError was introduced in Node v15.
      */
-    ...((typeof AggregateError === 'undefined' ? {} : { AggregateError }) as {
-      AggregateError: AggregateErrorConstructor;
-    }),
+    ...(typeof AggregateError === 'undefined' ? {} : { AggregateError }),
     Array,
     ArrayBuffer,
     BigInt64Array,
@@ -53,19 +51,19 @@ export class JSONPlus {
       : ([[AggregateError, (v: AggregateError) => [v.errors]]] as const)),
     [Array, (v: unknown[]) => v],
     [ArrayBuffer, (v: ArrayBuffer) => [...new Uint8Array(v)]],
-    [BigInt64Array, (v: BigInt64Array) => [[...v]]],
-    [BigUint64Array, (v: BigUint64Array) => [[...v]]],
+    [BigInt64Array, (v: BigInt64Array) => [...v]],
+    [BigUint64Array, (v: BigUint64Array) => [...v]],
     [Boolean, (v: Boolean) => [v.valueOf()]],
     [DataView, (v: DataView) => [...new Uint8Array(v.buffer)]],
     [Date, (v: Date) => [v.valueOf()]],
     [Error, (v: Error) => [v.message]],
     [EvalError, (v: EvalError) => [v.message]],
-    [Float32Array, (v: Float32Array) => [[...v]]],
-    [Float64Array, (v: Float64Array) => [[...v]]],
+    [Float32Array, (v: Float32Array) => [...v]],
+    [Float64Array, (v: Float64Array) => [...v]],
     [Function, (v: Function) => [v.toString()]],
-    [Int16Array, (v: Int16Array) => [[...v]]],
-    [Int32Array, (v: Int32Array) => [[...v]]],
-    [Int8Array, (v: Int8Array) => [[...v]]],
+    [Int16Array, (v: Int16Array) => [...v]],
+    [Int32Array, (v: Int32Array) => [...v]],
+    [Int8Array, (v: Int8Array) => [...v]],
     [Map, (v: Map<unknown, unknown>) => [[...v]]],
     [Number, (v: Number) => [v.valueOf()]],
     [RangeError, (v: RangeError) => [v.message]],
@@ -76,10 +74,10 @@ export class JSONPlus {
     [SyntaxError, (v: SyntaxError) => [v.message]],
     [TypeError, (v: TypeError) => [v.message]],
     [URIError, (v: URIError) => [v.message]],
-    [Uint16Array, (v: Uint16Array) => [[...v]]],
-    [Uint32Array, (v: Uint32Array) => [[...v]]],
-    [Uint8Array, (v: Uint8Array) => [[...v]]],
-    [Uint8ClampedArray, (v: Uint8ClampedArray) => [[...v]]],
+    [Uint16Array, (v: Uint16Array) => [...v]],
+    [Uint32Array, (v: Uint32Array) => [...v]],
+    [Uint8Array, (v: Uint8Array) => [...v]],
+    [Uint8ClampedArray, (v: Uint8ClampedArray) => [...v]],
   ]);
 
   negativeZeroReplacer?: JSONPlusReplacer = () => ['-0'];
@@ -87,10 +85,23 @@ export class JSONPlus {
   revivers: Record<string, JSONPlusReviver> = {
     '-0': () => -0,
     '-Infinity': () => -Infinity,
+    ArrayBuffer: (v: number[]) => Uint8Array.from(v).buffer,
+    BigInt64Array: (v: bigint[]) => BigInt64Array.from(v),
+    BigUint64Array: (v: bigint[]) => BigUint64Array.from(v),
+    DataView: (v: number[]) => new DataView(Uint8Array.from(v).buffer),
+    Float32Array: (v: number[]) => Float32Array.from(v),
+    Float64Array: (v: number[]) => Float64Array.from(v),
     Infinity: () => Infinity,
+    Int16Array: (v: number[]) => Int16Array.from(v),
+    Int32Array: (v: number[]) => Int32Array.from(v),
+    Int8Array: (v: number[]) => Int8Array.from(v),
     NaN: () => NaN,
-    bigint: (v: any[]) => BigInt(v[0]),
-    symbol: (v: any[]) => Symbol(v[0]),
+    Uint16Array: (v: number[]) => Uint16Array.from(v),
+    Uint32Array: (v: number[]) => Uint32Array.from(v),
+    Uint8Array: (v: number[]) => Uint8Array.from(v),
+    Uint8ClampedArray: (v: number[]) => Uint8ClampedArray.from(v),
+    bigint: (v: (string | number | bigint | boolean)[]) => BigInt(v[0]!),
+    symbol: (v: (string | number | undefined)[]) => Symbol(v[0]),
     undefined: () => undefined,
   };
 
@@ -106,7 +117,7 @@ export class JSONPlus {
     [undefined, () => ['undefined']],
   ]);
 
-  private replace(value: unknown): unknown {
+  private replace(value: any): any {
     const type = typeof value;
     const typeReplacer = this.typeReplacers[type];
     if (typeReplacer) {
@@ -136,7 +147,7 @@ export class JSONPlus {
 
         for (const key in value) {
           if (Object.prototype.hasOwnProperty.call(value, key)) {
-            output[key] = this.replace((value as any)[key]);
+            output[key] = this.replace(value[key]);
           }
         }
 
@@ -149,13 +160,13 @@ export class JSONPlus {
     return value;
   }
 
-  private revive(value: unknown): unknown {
+  private revive(value: any): any {
     if (value instanceof Array) {
       const [name, ...args] = value;
 
       const reviver = this.revivers[name];
       if (reviver) {
-        return this.revive(reviver(args));
+        return reviver(args.map((arg) => this.revive(arg)));
       }
 
       const Constructor: any = this.constructors[name];
@@ -169,7 +180,7 @@ export class JSONPlus {
 
       for (const key in value) {
         if (Object.prototype.hasOwnProperty.call(value, key)) {
-          output[key] = this.revive((value as any)[key]);
+          output[key] = this.revive(value[key]);
         }
       }
 
