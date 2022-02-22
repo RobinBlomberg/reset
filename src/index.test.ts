@@ -1,15 +1,36 @@
-import { testHttpServer } from 'http-server/tests/index.test';
-import { testKjouCssCompiler } from './kjou-css-compiler/tests/index.test';
-import { testKjouHtmlCompiler } from './kjou-html-compiler/tests/index.test';
-import { testKjouJs } from './kjou-js/tests/index.test';
-import { testKjou } from './kjou/tests/index.test';
+import { JSONPlus } from '.';
 
-(async () => {
-  await testKjou();
-  testKjouCssCompiler();
-  testKjouHtmlCompiler();
-  testKjouJs();
-  await testHttpServer();
+const JSON = new JSONPlus();
 
-  console.info('All tests passed.');
-})();
+/**
+ * TODO: Recursively revive values.
+ */
+console.dir(
+  JSON.parse(
+    JSON.stringify(
+      {
+        foo: {
+          bar: ['baz'],
+          bigint: 3n,
+          createdAt: new Date(),
+          error: new TypeError('Something went wrong.'),
+          infinity: Infinity,
+          map: new Map([['foo', new Map([['foo', { bar: 'baz' }]])]]),
+          nan: NaN,
+          negativeInfinity: -Infinity,
+          negativeZero: -0,
+          object: {
+            title: 'Untitled Document',
+          },
+          set: new Set(['foo', 'bar']),
+          string: 'hello',
+          symbol: Symbol('test'),
+          undefined,
+        },
+      },
+      null,
+      2,
+    ),
+  ),
+  { depth: null },
+);
