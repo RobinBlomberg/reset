@@ -192,10 +192,12 @@ export class JSONPlus {
    * Converts a JavaScript Object Notation (JSON) string into an object.
    *
    * @param text A valid JSON string.
-   * @param reviver Not used.
+   * @param reviver A function that transforms the results. This function is called for each member
+   * of the object. If a member contains nested objects, the nested objects are transformed before
+   * the parent object is.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  parse(text: string, reviver?: null) {
+  parse(text: string, reviver?: undefined) {
     return this.revive(JSON.parse(text));
   }
 
@@ -203,10 +205,12 @@ export class JSONPlus {
    * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
    *
    * @param value A JavaScript value, usually an object or array, to be converted.
-   * @param replacer Not used.
-   * @param space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+   * @param replacer An array of strings and numbers that acts as an approved list for selecting the
+   * object properties that will be stringified.
+   * @param space Adds indentation, white space, and line break characters to the return-value JSON
+   * text to make it easier to read.
    */
-  stringify(value: any, replacer?: null, space?: string | number) {
+  stringify(value: any, replacer?: null | undefined, space?: string | number) {
     return JSON.stringify(this.replace(value), replacer, space);
   }
 }
