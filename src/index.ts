@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/member-ordering */
-/* eslint-disable @typescript-eslint/ban-types */
 export type JSONPlusReplacer = (value?: any) => unknown[];
 
 export type JSONPlusReviver = (args: any[]) => unknown;

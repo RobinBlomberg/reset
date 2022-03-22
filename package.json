@@ -1,14 +1,14 @@
 {
   "devDependencies": {
     "@robinblomberg/eslint-config-prettier": "*",
-    "@robinblomberg/eslint-config-robinblomberg": "*",
+    "@robinblomberg/eslint-config-robinblomberg": "0.11.0-beta2",
     "@robinblomberg/prettier-config": "*",
     "@types/node": "*",
     "@typescript-eslint/parser": "*",
-    "eslint": "^7",
+    "eslint": "7",
     "ts-node-dev": "*",
     "tsconfig-paths": "*",
-    "typescript": "^4"
+    "typescript": "^4.6.2"
   },
   "eslintConfig": {
     "extends": [
