@@ -14,7 +14,10 @@
     "extends": [
       "@robinblomberg/robinblomberg",
       "@robinblomberg/prettier"
-    ]
+    ],
+    "rules": {
+      "@typescript-eslint/unified-signatures": 0
+    }
   },
   "prettier": "@robinblomberg/prettier-config"
 }

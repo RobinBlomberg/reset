@@ -60,3 +60,17 @@ const data = {
 };
 
 deepStrictEqual(data, JSON.parse(JSON.stringify(data)));
+
+deepStrictEqual(
+  JSON.stringify({ set: new Set([0, 1, 2]) }, (key, value) => {
+    return typeof value === 'number' ? value * 2 : value;
+  }),
+  '{"set":["_Set",[0,2,4]]}',
+);
+
+deepStrictEqual(
+  JSON.parse('{"set":["_Set",[0,2,4]]}', (key, value) => {
+    return typeof value === 'number' ? value / 2 : value;
+  }),
+  { set: new Set([0, 1, 2]) },
+);
