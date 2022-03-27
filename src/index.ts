@@ -3,7 +3,7 @@ export type JSONPlusReplacer = (value?: any) => unknown[];
 export type JSONPlusReviver = (args: any[]) => unknown;
 
 export class JSONPlus {
-  constructors: Record<string, Function> = {
+  constructors: Record<string, new (...args: any) => unknown> = {
     /**
      * AggregateError was introduced in Node v15.
      */
@@ -167,7 +167,7 @@ export class JSONPlus {
         return reviver(args.map((arg) => this.revive(arg)));
       }
 
-      const Constructor: any = this.constructors[name];
+      const Constructor = this.constructors[name];
       if (Constructor) {
         return new Constructor(...args.map((arg) => this.revive(arg)));
       }
