@@ -78,7 +78,7 @@ export class JSONPlus {
     [Uint8ClampedArray, (v: Uint8ClampedArray) => [...v]],
   ]);
 
-  negativeZeroReplacer?: JSONPlusReplacer = () => ['-0'];
+  negativeZeroReplacer?: JSONPlusReplacer = () => ['_-0'];
 
   revivers: Record<string, JSONPlusReviver> = {
     '-0': () => -0,
@@ -109,17 +109,17 @@ export class JSONPlus {
   };
 
   valueReplacers = new Map<unknown, JSONPlusReplacer>([
-    [Infinity, () => ['Infinity']],
-    [-Infinity, () => ['-Infinity']],
-    [NaN, () => ['NaN']],
-    [undefined, () => ['undefined']],
+    [Infinity, () => ['_Infinity']],
+    [-Infinity, () => ['_-Infinity']],
+    [NaN, () => ['_NaN']],
+    [undefined, () => ['_undefined']],
   ]);
 
   private replace(value: any): any {
     const type = typeof value;
     const typeReplacer = this.typeReplacers[type];
     if (typeReplacer) {
-      return [type, ...typeReplacer(value)];
+      return [`_${type}`, ...typeReplacer(value)];
     }
 
     const valueReplacer = this.valueReplacers.get(value);
@@ -131,11 +131,18 @@ export class JSONPlus {
       return this.negativeZeroReplacer(value);
     }
 
+    if (
+      value instanceof Array &&
+      (typeof value[0] !== 'string' || value[0][0] !== '_')
+    ) {
+      return value.map((arg) => this.replace(arg));
+    }
+
     if (value instanceof Object) {
       const instanceReplacer = this.instanceReplacers.get(value.constructor);
       if (instanceReplacer) {
         return [
-          value.constructor.name,
+          `_${value.constructor.name}`,
           ...instanceReplacer(value).map((arg) => this.replace(arg)),
         ];
       }
@@ -160,7 +167,12 @@ export class JSONPlus {
 
   private revive(value: any): any {
     if (value instanceof Array) {
-      const [name, ...args] = value;
+      const [type, ...args] = value;
+      if (typeof type !== 'string' || type[0] !== '_') {
+        return value.map((arg) => this.revive(arg));
+      }
+
+      const name = type.slice(1);
 
       const reviver = this.revivers[name];
       if (reviver) {

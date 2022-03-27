@@ -14,7 +14,7 @@ const data = {
   //     "Range '{0,Infinity}' is out of bounds for range '{1,255}'.",
   //   ),
   // ]),
-  Array: ['foo', 42, [null, []], undefined],
+  Array: ['foo', 42, [null, []], undefined, ['_Array', 1, 2]],
   ArrayBuffer: arrayBuffer,
   BigInt64Array: new BigInt64Array([162n, 39n]),
   BigUint64Array: new BigUint64Array([162n, 39n]),
